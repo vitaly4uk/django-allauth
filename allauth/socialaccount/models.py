@@ -24,6 +24,11 @@ from .fields import JSONField
 from ..utils import get_request_param
 
 
+class UnsavedForeignKey(models.ForeignKey):
+    # A ForeignKey which can point to an unsaved object
+    allow_unsaved_instance_assignment = True
+
+
 class SocialAppManager(models.Manager):
     def get_current(self, provider):
         site = Site.objects.get_current()
@@ -67,7 +72,7 @@ class SocialApp(models.Model):
 
 @python_2_unicode_compatible
 class SocialAccount(models.Model):
-    user = models.ForeignKey(allauth.app_settings.USER_MODEL)
+    user = UnsavedForeignKey(allauth.app_settings.USER_MODEL)
     provider = models.CharField(verbose_name=_('provider'),
                                 max_length=30,
                                 choices=providers.registry.as_choices())
@@ -102,7 +107,10 @@ class SocialAccount(models.Model):
         return authenticate(account=self)
 
     def __str__(self):
-        return force_text(self.user)
+        try:
+            return force_text(self.user)
+        except Exception:
+            return self.uid
 
     def get_profile_url(self):
         return self.get_provider_account().get_profile_url()
@@ -120,7 +128,7 @@ class SocialAccount(models.Model):
 @python_2_unicode_compatible
 class SocialToken(models.Model):
     app = models.ForeignKey(SocialApp)
-    account = models.ForeignKey(SocialAccount)
+    account = UnsavedForeignKey(SocialAccount)
     token = models \
         .TextField(verbose_name=_('token'),
                    help_text=_('"oauth_token" (OAuth1) or access token'
