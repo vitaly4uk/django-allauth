@@ -6,6 +6,7 @@ import json
 
 from django.conf import settings
 from django.http import HttpResponse
+from django.http.request import HttpRequest
 from django.template.loader import render_to_string
 from django.template import TemplateDoesNotExist
 from django.contrib.sites.models import Site
@@ -262,7 +263,11 @@ class DefaultAccountAdapter(object):
                 message = render_to_string(message_template,
                                            message_context).strip()
                 if message:
-                    messages.add_message(request, level, message,
+                    if isinstance(request, HttpRequest):
+                        r = request
+                    else:
+                        r = request._request
+                    messages.add_message(r, level, message,
                                          extra_tags=extra_tags)
             except TemplateDoesNotExist:
                 pass
