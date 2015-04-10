@@ -1,6 +1,7 @@
 import re
 import unicodedata
 import json
+from uuid import UUID
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import validate_email, ValidationError
@@ -163,7 +164,7 @@ def serialize_instance(instance):
     """
     ret = dict([(k, v)
                 for k, v in instance.__dict__.items()
-                if not k.startswith('_')])
+                if not k.startswith('_') or isinstance(v, UUID)])
     return json.loads(json.dumps(ret, cls=DjangoJSONEncoder))
 
 
