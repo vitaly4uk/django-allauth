@@ -164,7 +164,7 @@ def serialize_instance(instance):
     """
     ret = dict([(k, v)
                 for k, v in instance.__dict__.items()
-                if not k.startswith('_') or isinstance(v, UUID)])
+                if not k.startswith('_') and not isinstance(v, UUID)])
     return json.loads(json.dumps(ret, cls=DjangoJSONEncoder))
 
 
